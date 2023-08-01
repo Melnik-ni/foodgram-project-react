@@ -14,36 +14,36 @@ from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CreateRecipeSerializer,
                              FollowSerializer, IngredientSerializer,
                              RecipeSerializer, TagSerializer, UsersSerializer)
-from recipes.models import (Favorite, Follow, Ingredient, IngredientAmount,
+from recipes.models import (Favorite, Ingredient, IngredientAmount,
                             Recipe, ShoppingCart, Tag)
-from users.models import User
+from users.models import User, Follow
 
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [(AllowAny,)]
     pagination_class = None
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [(AllowAny,)]
     pagination_class = None
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [(DjangoFilterBackend,)]
     filterset_class = IngredientFilter
 
 
 class UsersViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [(AllowAny,)]
 
     @action(
         detail=True,
         methods=['POST', 'DELETE'],
-        permission_classes=[IsAuthenticated]
+        permission_classes=[(IsAuthenticated,)]
     )
     def subscribe(self, request, **kwargs):
         user = request.user
@@ -59,14 +59,13 @@ class UsersViewSet(UserViewSet):
                 serializer.data,
                 status=status.HTTP_201_CREATED
             )
-        if request.method == 'DELETE':
-            get_object_or_404(Follow, user=user, author=author).delete()
-            return Response({'detail': 'Вы успешно отписались'},
-                            status=status.HTTP_204_NO_CONTENT)
+        get_object_or_404(Follow, user=user, author=author).delete()
+        return Response({'detail': 'Вы успешно отписались'},
+                        status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,
-        permission_classes=[IsAuthenticated]
+        permission_classes=[(IsAuthenticated,)]
     )
     def subscriptions(self, request):
         serializer = FollowSerializer(
@@ -82,8 +81,8 @@ class UsersViewSet(UserViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = [IsAuthorOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
+    permission_classes = [(IsAuthorOrReadOnly,)]
+    filter_backends = [(DjangoFilterBackend,)]
     filterset_class = RecipeFilter
 
     def get_queryset(self):
@@ -94,27 +93,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeSerializer
         return CreateRecipeSerializer
 
-    def recipe_add(self, model, request, pk):
-        user = request.user
-        recipe = get_object_or_404(Recipe, pk=pk)
-        serializer = RecipeSerializer(recipe)
-        if not model.objects.filter(recipe=recipe, user=user).exists():
-            model.objects.create(recipe=recipe, user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({'errors': 'Рецепт уже добавлен.'},
-                        status=status.HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
-    def recipe_delete(self, model, request, pk):
-        user = request.user
-        recipe = get_object_or_404(Recipe, pk=pk)
-        get_object_or_404(model, user=user, recipe=recipe).delete()
-        return Response({'detail': 'Рецепт удален.'},
-                        status=status.HTTP_204_NO_CONTENT)
+    def perform_update(self, serializer):
+        serializer.save()
 
     @action(
         detail=True,
         methods=['POST', 'DELETE'],
-        permission_classes=[IsAuthenticated]
+        permission_classes=[(IsAuthenticated,)]
     )
     def favorite(self, request, pk):
         if request.method == 'POST':
@@ -124,7 +112,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['POST', 'DELETE'],
-        permission_classes=[IsAuthenticated]
+        permission_classes=[(IsAuthenticated,)]
     )
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':
@@ -134,7 +122,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=['GET'],
-        permission_classes=[IsAuthenticated]
+        permission_classes=[(IsAuthenticated,)]
     )
     def download_shopping_cart(self, request):
         user = request.user

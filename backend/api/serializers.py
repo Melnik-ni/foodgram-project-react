@@ -4,9 +4,9 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 
-from recipes.models import (Favorite, Follow, Ingredient, IngredientAmount,
+from recipes.models import (Favorite, Ingredient, IngredientAmount,
                             Recipe, ShoppingCart, Tag)
-from users.models import User
+from users.models import User, Follow
 
 
 class UsersSerializer(UserSerializer):
@@ -204,7 +204,6 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         if 'ingredients' in validated_data:
             ingredients = validated_data.pop('ingredients')
             recipe.ingredients.clear()
-            print(ingredients)
             self.create_ingredient_amount(ingredients, recipe)
         if 'tags' in validated_data:
             tags_data = validated_data.pop('tags')
@@ -232,13 +231,13 @@ class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
         fields = ('user', 'recipe')
-        validators = [
+        validators = (
             UniqueTogetherValidator(
                 queryset=Favorite.objects.all(),
                 fields=('user', 'recipe'),
                 message='Рецепт уже добавлен в избранное'
             )
-        ]
+        )
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
