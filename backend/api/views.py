@@ -22,28 +22,28 @@ from users.models import User, Follow
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [(AllowAny,)]
+    permission_classes = (AllowAny,)
     pagination_class = None
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = [(AllowAny,)]
+    permission_classes = (AllowAny,)
     pagination_class = None
-    filter_backends = [(DjangoFilterBackend,)]
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientFilter
 
 
 class UsersViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = [(AllowAny,)]
+    permission_classes = (AllowAny,)
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
-        permission_classes=[(IsAuthenticated,)]
+        methods=('POST', 'DELETE',),
+        permission_classes=(IsAuthenticated,)
     )
     def subscribe(self, request, **kwargs):
         user = request.user
@@ -65,7 +65,7 @@ class UsersViewSet(UserViewSet):
 
     @action(
         detail=False,
-        permission_classes=[(IsAuthenticated,)]
+        permission_classes=(IsAuthenticated,)
     )
     def subscriptions(self, request):
         serializer = FollowSerializer(
@@ -81,8 +81,8 @@ class UsersViewSet(UserViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = [(IsAuthorOrReadOnly,)]
-    filter_backends = [(DjangoFilterBackend,)]
+    permission_classes = (IsAuthorOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def get_queryset(self):
@@ -101,8 +101,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
-        permission_classes=[(IsAuthenticated,)]
+        methods=('POST', 'DELETE',),
+        permission_classes=(IsAuthenticated,)
     )
     def favorite(self, request, pk):
         if request.method == 'POST':
@@ -111,8 +111,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
-        permission_classes=[(IsAuthenticated,)]
+        methods=('POST', 'DELETE',),
+        permission_classes=(IsAuthenticated,)
     )
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':
@@ -121,8 +121,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False,
-        methods=['GET'],
-        permission_classes=[(IsAuthenticated,)]
+        methods=('GET',),
+        permission_classes=(IsAuthenticated,)
     )
     def download_shopping_cart(self, request):
         user = request.user

@@ -35,12 +35,12 @@ class Tag(models.Model):
         max_length=7,
         unique=True,
         verbose_name='Цвет',
-        validators=[
+        validators=(
             RegexValidator(
                 r'^#([A-Fa-f0-9]){3,6}$',
                 message='Введите цвет в формате HEX'
             ),
-        ],
+        ),
     )
     slug = models.SlugField(
         unique=True,
